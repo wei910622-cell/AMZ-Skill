@@ -44,11 +44,11 @@ This folder is a tool-agnostic agent playbook. Use it in Codex, Claude Code, Cur
 6. Treat rules in `references/policy-overlay.md` as higher priority than generic checklist guidance.
 7. For Excel/HTML deliverables, batch jobs, or any keyword embedding task, read `references/output-provenance-schema.md` and create a source inventory plus keyword provenance structure before writing copy.
 8. For Alexa, COSMO, voice-shopping, AI-shopping assistant, backend attribute, Q&A intent, or machine-readable optimization tasks, read `references/alexa-shopping-optimization.md` and prioritize entity facts, negative constraints, backend attributes, and voice-intent Q&A over keyword density.
-9. Confirm the provided keyword map before writing copy. Do not run standalone keyword scoring or classification in this skill. If keyword scoring/classification is missing and required, route the user to a keyword-analysis/search skill or ask for the analyzed keyword file.
-10. Run a keyword relevance pre-review against the current product facts. Assign each upstream keyword a preliminary relevance level: `High`, `Medium`, `Low`, or `None`. Export the pre-review as Excel plus a user questionnaire when many terms or material product choices need confirmation. Do not generate final Listing copy until the user confirms or overrides the relevance review, unless they explicitly request a provisional draft.
+9. Confirm the provided keyword map before writing copy. Do not run standalone keyword scoring or classification in this skill. If no keyword library, analyzed keyword file, or user-approved manual keyword table is provided, do not generate final Listing copy. Instead, run the intake gate and guide the user to export or provide the required keyword table. If keyword scoring/classification is missing and required, route the user to a keyword-analysis/search skill or ask for the analyzed keyword file.
+10. Run a keyword relevance pre-review against the current product facts. Assign each upstream keyword a preliminary relevance level: `High`, `Medium`, `Low`, or `None`. Export the pre-review as Excel plus a user questionnaire when many terms or material product choices need confirmation. Do not generate final Listing copy until the user confirms or overrides the relevance review. Final Listing copy is not allowed without a confirmed keyword table and an embedded-keyword provenance table.
 11. Build `定位分析` before copywriting: define what the product is, who it is for, style, the core selling points, use scenarios, excluded audiences/claims, and evidence.
-12. Optimize title first. The title must answer what the product is, who it is for, and what the key highlight is. Then pass the winning title into bullet optimization so bullets fill long-tail keyword and conversion gaps instead of repeating the title.
-13. Generate required parallel Listing fields: title under 75 characters unless stricter verified rules apply, target-audience lines, style within 100 characters, five bullet points, long description up to 10,000 characters when needed, Search Terms/ST within 250 characters, main/sub image suggestion words, A+ module suggestion words, core selling points, use scenarios, backend attributes when relevant, keyword usage confirmation, character count table, scoring table, and compliance notes.
+12. Optimize title first. The title must answer what the product is, who it is for, and what the key highlight is. Do not include the brand name in the customer-facing title by default. Use the brand only when the user explicitly asks for it, when the marketplace template requires it, or when the brand itself is the strongest verified search term. Then pass the winning title into bullet optimization so bullets fill long-tail keyword and conversion gaps instead of repeating the title.
+13. For a normal one-shot Listing output, generate exactly these customer-facing fields plus provenance: title under 75 characters unless stricter verified rules apply, Target Audience lines, Style within 100 characters, five Bullets, Long Description, Search Terms/ST within 250 characters, and an embedded-keyword provenance table. Generate A+ modules, main/sub image copy, backend attributes, character-count tables, scoring tables, or Excel/HTML sheets only when the user explicitly asks for those deliverables.
 14. Export as Excel or HTML when requested. For batch jobs and final Listing outputs, prefer Excel; for narrative research reports, prefer HTML. Use Chinese sheet/section names. Every embedded keyword must be traceable to its source.
 
 ## Intake Gate
@@ -56,6 +56,25 @@ This folder is a tool-agnostic agent playbook. Use it in Codex, Claude Code, Cur
 Always run this gate before generating listing copy. If the user provides partial data, ask concise follow-up questions instead of filling gaps with assumptions.
 
 Do not put unresolved questions into the final Excel. Discuss missing facts, unsupported claims, and choices with the user first. Generate final Excel only after the needed confirmations are resolved, unless the user explicitly asks for a provisional draft.
+
+### Keyword Table Gate
+
+Final Listing copy requires a keyword table. Product facts alone are not enough.
+
+If the user provides only product facts, existing title, bullets, description, or variant notes, do not output final title, Target Audience, Style, Bullets, Long Description, or ST. Instead, output:
+
+- confirmed product facts;
+- missing keyword table status;
+- the minimum keyword exports needed;
+- a suggested keyword table format the user can paste or upload.
+
+Acceptable keyword inputs include:
+
+- analyzed keyword workbook from the keyword-analysis skill;
+- SellerSprite, Helium 10, Jungle Scout, ABA/SQP, Ads, Sorftime, Apify, or competitor keyword exports;
+- a user-approved manual keyword table with columns for keyword, source, relevance, and intended destination.
+
+Every final embedded term must be traceable to the confirmed keyword table, a confirmed product fact, or an explicit manual seed approved by the user. The final one-shot output must include an embedded-keyword provenance table.
 
 ### Data Sufficiency Check
 
@@ -150,7 +169,7 @@ Do not require uploads when MCP/API can retrieve the data. If required fields re
 For each standalone ASIN, output:
 
 - Positioning analysis: product type, target audience, excluded audience/claims, core selling points, use scenarios, and evidence.
-- Standalone target audience field: publishable `for ...` audience phrases. Default to at least five lines and add more when relevant and supported, such as `for yourself`, `for women`, `for daughter`, `for mom`, `for wife`, `for girlfriend`, `for wedding guest`, `for vacation outfits`, or `for garden party looks`. Excluded audience phrases and unsupported claims stay in positioning/compliance notes, not in target-audience lines.
+- Standalone target audience field: publishable `for ...` audience phrases only. Default to at least five lines and add more when relevant and supported. Prioritize buyer/use-recipient and scenario phrases such as `for women`, `for yourself`, `for mom`, `for daughter`, `for wife`, `for girlfriend`, `for friends`, `for wedding guest`, `for daily outfits`, `for office wear`, `for party wear`, `for date night`, `for vacation outfits`, `for beach outfits`, `for photo shoots`, or `for garden party looks`. Do not replace this field with broad persona paragraphs. Excluded audience phrases and unsupported claims stay in positioning/compliance notes, not in target-audience lines.
 - Optimized title.
 - Five bullet points covering scenario, material, core benefit, compatibility/specs, and trust or care details.
 - Target audience phrases.
@@ -178,7 +197,7 @@ For parent-child ASINs, optimize the variation family first, then child ASINs:
 Child title pattern when suitable:
 
 ```text
-Brand + Product Type + Variant Attribute + Primary Differentiator + Size/Count/Use Case
+Product Type + Audience + Variant Attribute + Primary Differentiator + Size/Count/Use Case
 ```
 
 ### Batch Independent ASINs
@@ -227,10 +246,17 @@ For each iteration:
 Title construction preference:
 
 ```text
-Brand + Product Type + Primary Differentiator + Key Attribute/Use Case + Size/Quantity/Compatibility
+Product Type + Audience + Primary Differentiator + Key Attribute/Use Case + Size/Quantity/Compatibility
 ```
 
 Use this as a flexible pattern, not a rigid formula. Category rules and buyer clarity win over template purity.
+
+Brand handling:
+
+- Do not include the brand name in the customer-facing title by default.
+- Keep brand name for source inventory, brand voice, internal notes, A+ brand story, or packaging context when useful.
+- Include the brand in the title only if the user explicitly requests it, marketplace/category rules require it, or the brand is a verified high-intent keyword that improves clarity without wasting title length.
+- For variation titles, use the differentiating child attribute such as color, finish, size, style, scent, or pack count instead of repeating the brand.
 
 ## Bullet Optimization Loop
 
@@ -269,10 +295,12 @@ For fashion, jewelry, accessories, apparel, or other outfit-driven products, bul
 - Capture mood and aesthetic value when supported: playful, cheerful, sculptural, feminine, polished, vacation-ready, or outfit-brightening.
 - Keep every styling claim tied to the visible product design, material, color, stone, shape, or confirmed use case.
 
-Target audience output may use two complementary formats:
+Target audience output may use two complementary formats, but the publishable field must be `for ...` phrases:
 
 - Audience persona notes: short grouped explanations such as self-buyers, women of different ages, gift recipients, fashion lovers, nature-inspired/boho style shoppers, wedding guests, vacation travelers, or photo-focused shoppers.
 - Publishable `for ...` phrases: concise phrases for Excel/listing fields, such as `for yourself`, `for women`, `for girlfriend`, `for mom`, `for daughter`, `for wedding guest`, `for photo shoots`, or `for garden party looks`.
+
+When the user asks for "目标受众", output the publishable `for ...` phrase list first. Persona notes are optional supporting analysis only and should not replace the Listing field.
 
 Do not target children, young girls, or teens unless the product facts, safety positioning, size, and marketplace/category context support it. If the user provides a generic audience example that includes young girls or teens, adapt it conservatively for the actual product.
 
@@ -406,7 +434,44 @@ When competitor ASINs are available:
 
 ## Output Format
 
-For a single ASIN, return results in this order:
+For a single ASIN with a confirmed keyword table, return the normal one-shot Listing output in this order:
+
+```markdown
+## Title
+[optimized title]
+
+## Target Audience
+for ...
+for ...
+for ...
+for ...
+for ...
+
+## Style
+[<=100 characters]
+
+## Bullets
+1. ...
+2. ...
+3. ...
+4. ...
+5. ...
+
+## Long Description
+...
+
+## Search Terms/ST
+[<=250 characters]
+
+## 埋入词溯源表
+| Embedded Term | Used In | Source | Source Detail | Transformation | Relevance | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| ... | ... | ... | ... | ... | ... | ... |
+```
+
+If the user asks for expanded analysis, Excel, HTML, A+ modules, image copy, scoring, or batch/variation matrices, add the relevant sections below the normal one-shot output.
+
+For expanded single-ASIN analysis, return results in this order:
 
 ```markdown
 ## 定位分析
@@ -519,7 +584,7 @@ Score: XX/100
 - ...
 ```
 
-If the user wants only copy, provide the final title and five bullets first, then a short note that `评分表` is available.
+If the user wants only copy and a confirmed keyword table exists, provide only: Title, Target Audience, Style, Bullets, Long Description, Search Terms/ST, and `埋入词溯源表`. If no confirmed keyword table exists, do not provide final copy; ask for the keyword table or guide the user to export it.
 
 For Excel output, create these sheets:
 
@@ -551,9 +616,10 @@ Before finalizing, verify:
 - Alexa/COSMO outputs do not claim `Alexa's Choice`, `Alexa Recommended`, `Endorsed by AI`, or any unsupported assistant endorsement.
 - The full title stays within the active limit, including the user-provided 75-character rule when no stricter verified rule overrides it.
 - The title clearly answers what the product is, who it is for, and the key highlight.
+- The title excludes the brand name unless the user explicitly requested it, the marketplace/category template requires it, or a verified brand-search reason is documented.
 - The first 60-75 title characters work as the mobile search hook.
 - `定位分析` is complete: target audience, excluded audience/claims, core selling points, and use scenarios are supported by product facts, keyword data, competitor/review language, or user confirmation.
-- Final output includes standalone `目标受众` lines using `for ...` phrases, parallel with title, bullets, long description, and ST. Provide at least five and add more when relevant, supported, and useful.
+- Final output includes standalone `目标受众` lines using publishable `for ...` phrases, parallel with title, bullets, long description, and ST. Provide at least five and add more when relevant, supported, and useful. Do not output only broad persona paragraphs for this field.
 - No claim exceeds provided evidence.
 - Bullets do not duplicate the title's main keyword phrase unnecessarily.
 - Bullet set follows the two-layer logic: core selling point/pain point/difference first, then product facts such as feature, size, audience, and scenario.
@@ -564,7 +630,7 @@ Before finalizing, verify:
 - Style is 100 characters or fewer.
 - `字符统计` includes title, target audience total, each target-audience line, style, bullets, long description, ST, A+ analysis/module copy, main/sub image copy, and total when those modules are generated. Target audience is counted separately as a flexible multi-line parallel field.
 - Keyword library has been confirmed, sourced, and mapped before final copy is written.
-- Final copy includes a `关键词追踪` provenance table when a keyword library was provided.
+- Final copy includes an `埋入词溯源表` provenance table every time. If no confirmed keyword table exists, final copy must not be generated.
 - Every embedded keyword traces back to a source file/API/sheet/ASIN, user-confirmed product fact, or explicit manual seed.
 - No unresolved questions are hidden in Excel; discuss them with the user before final output.
 - Batch outputs include per-ASIN status, scores, and missing-data notes.
